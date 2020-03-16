@@ -7,8 +7,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 
-from utils.ecdsa import Key
-
 from .serializers import UserSerializer, User
 
 
@@ -20,24 +18,17 @@ def user_list(request):
 
 @api_view(['POST'])
 def register(request):
-    name = request.data.get('name')
-    public_key = request.data.get('public_key')
-    signature = request.data.get('signature')
-    
-    key = Key(public_key=public_key)
-    key.verify(signature, name.encode())
-
-    unique_str = name + str(int(now().timestamp() * 1000))
-    user_id = b64encode(sha256(unique_str.encode()).digest()).decode('ascii')
-    
-    serializer = UserSerializer(data={
-        'name': name,
-        'public_key': public_key,
-        'user_id': user_id,
-    })
+    serializer = UserSerializer(data=request.data)
 
     if serializer.is_valid():
         user = serializer.save()
+
+        # Create unique user id with name and a nano timestamp
+        unique_str = user.name + str(int(now().timestamp() * 1000))
+        user_id = b64encode(sha256(unique_str.encode()).digest()).decode('ascii')
+        user.user_id = user_id
+        user.save()
+
         return Response(UserSerializer(user).data)
 
     return Response(serializer.errors, HTTP_400_BAD_REQUEST)

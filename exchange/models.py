@@ -13,10 +13,10 @@ class Document(models.Model):
     id = models.AutoField(primary_key=True)
     sender = models.ForeignKey(User, to_field='user_id', related_name='receiver', on_delete=models.CASCADE)
     receiver = models.ForeignKey(User, to_field='user_id', related_name='sender', on_delete=models.CASCADE)
-    doc = models.CharField(max_length=255, null=False, blank=False)
+    doc = models.FileField(upload_to='docs', null=False, blank=False)
     sig_sender = models.CharField(max_length=100, null=False, blank=False)
     sig_receiver = models.CharField(max_length=100, null=True, blank=False)
-    session_id = models.CharField(max_length=100, null=False, blank=False)
+    session_id = models.CharField(max_length=100, null=True, blank=False)
     date_created = models.DateTimeField(default=now)
 
     status = models.CharField(max_length=100, choices=[
